@@ -1,20 +1,38 @@
 export default function Topbar({ projetoAtual, onAddTask, onToggleView, viewMode }) {
+  // Define a cor do status com base no nome do status
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "ativo":
+        return "bg-green-100 text-green-800";
+      case "pausado":
+        return "bg-yellow-100 text-yellow-800";
+      case "arquivado":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-transparent text-transparent"; // Esconde se não houver status
+    }
+  };
+
   return (
     <div className="bg-white shadow-sm border-b p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h2 className="text-xl font-semibold text-gray-800">
-            {projetoAtual.nome}
+            {projetoAtual?.name || "Nenhum projeto selecionado"}
           </h2>
-          <span className="ml-3 px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-800">
-            {projetoAtual.status}
-          </span>
+          {/* Apenas mostra a bolinha de status se houver um status válido */}
+          {projetoAtual?.status && (
+            <span className={`ml-3 px-3 py-1 text-sm rounded-full capitalize ${getStatusColor(projetoAtual.status)}`}>
+              {projetoAtual.status}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
           <button
             onClick={onAddTask}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center disabled:bg-gray-400"
+            disabled={!projetoAtual?.id} // Desabilita o botão se nenhum projeto estiver selecionado
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

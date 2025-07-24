@@ -1,12 +1,28 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const TaskContext = createContext();
 
 export function TaskProvider({ children }) {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(() => {
+    try {
+      const savedTasks = localStorage.getItem("tasks");
+      return savedTasks ? JSON.parse(savedTasks) : [];
+    } catch (error) {
+      console.error("Falha ao carregar tarefas do localStorage", error);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    } catch (error) {
+      console.error("Falha ao salvar tarefas no localStorage", error);
+    }
+  }, [tasks]);
 
   const addTask = (newTask) => {
-    setTasks((prev) => [...prev, { ...newTask, id: Date.now(), status: "todo" }]);
+    setTasks((prev) => [...prev, newTask]);
   };
 
   const updateTask = (updated) => {
@@ -18,9 +34,23 @@ export function TaskProvider({ children }) {
   };
 
   const moveTask = (taskId, newStatus) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
+    const taskIndex = tasks.findIndex((task) => task.id === taskId);
+
+    if (taskIndex === -1) {
+      console.error(`ERRO: Tarefa com ID ${taskId} não foi encontrada!`);
+      return;
+    }
+    
+    const newTasksArray = [...tasks];
+
+    const updatedTask = {
+      ...newTasksArray[taskIndex],
+      status: newStatus,
+    };
+
+    newTasksArray[taskIndex] = updatedTask;
+
+    setTasks(newTasksArray);
   };
 
   return (
@@ -28,7 +58,7 @@ export function TaskProvider({ children }) {
       value={{ tasks, addTask, updateTask, deleteTask, moveTask }}
     >
       {children}
-    </TaskContext.Provider>
+    </TaskContext.Provider> // <-- ERRO CORRIGIDO AQUI
   );
 }
 

@@ -6,9 +6,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-
 import { useTasks } from "../../context/TaskContext";
-import { useSelectedProject } from "../../context/SelectedProjectContext";
 
 const columns = {
   todo: "A Fazer",
@@ -16,18 +14,24 @@ const columns = {
   done: "Concluído",
 };
 
-export default function TaskBoard({ onEdit }) {
-  const { tasks, moveTask, deleteTask } = useTasks();
-  const { selectedProjectId } = useSelectedProject();
-
+// Receba 'tasks' como uma prop, em vez de buscá-lo no contexto aqui.
+export default function TaskBoard({ tasks, onEdit }) { 
+  const { moveTask, deleteTask } = useTasks(); // Pegue apenas as funções do contexto.
+  
   const sensors = useSensors(useSensor(PointerSensor));
-  const tarefas = tasks.filter((t) => t.projectId === selectedProjectId);
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    if (active.id && over?.id && active.id !== over.id) {
-      const taskId = parseInt(active.id);
-      const newStatus = over.id;
+    if (!over) return;
+
+    const newStatus = over.data.current?.sortable?.containerId || over.id;
+    const taskId = parseInt(active.id);
+    const task = tasks.find(t => t.id === taskId);
+
+    // Adicione esta linha para depuração
+    console.log(`Drag End: Tarefa ID=${taskId}, Status Antigo=${task?.status}, Novo Status=${newStatus}`);
+
+    if (task && task.status !== newStatus) {
       moveTask(taskId, newStatus);
     }
   };
@@ -40,7 +44,8 @@ export default function TaskBoard({ onEdit }) {
     >
       <div className="grid grid-cols-3 gap-6">
         {Object.entries(columns).map(([status, label]) => {
-          const filtered = tarefas.filter((t) => t.status === status);
+          // A filtragem agora usa a lista de tarefas ('tasks') recebida via props.
+          const filtered = tasks.filter((t) => t.status === status);
           return (
             <Column
               key={status}

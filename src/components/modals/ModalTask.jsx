@@ -40,19 +40,21 @@ export default function ModalTask({ isOpen, onClose, initialData }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
+   const handleSave = () => {
     if (!selectedProjectId || !form.title.trim()) return;
 
-    const taskData = {
-      ...form,
-      projectId: selectedProjectId,
-      id: isEditing ? initialData.id : Date.now(),
-    };
-
     if (isEditing) {
-      updateTask(taskData);
+      // Se estiver editando, apenas passa os dados atualizados do formulário.
+      updateTask({ ...initialData, ...form });
     } else {
-      addTask(taskData);
+      // Se estiver criando, monta o objeto completo da nova tarefa aqui.
+      const newTask = {
+        ...form, // Dados do formulário (título, descrição, etc.)
+        id: Date.now(), // Gera um novo ID
+        status: 'todo', // Define o status inicial explicitamente
+        projectId: selectedProjectId, // Associa ao projeto selecionado
+      };
+      addTask(newTask);
     }
 
     onClose();
