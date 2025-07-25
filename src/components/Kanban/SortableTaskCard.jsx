@@ -1,51 +1,34 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import TaskCard from "../Tasks/TaskCard";
 
 export function SortableTaskCard({ tarefa, onEdit, onDelete }) {
   const {
+    // Agora pegamos o 'attributes' separadamente
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: String(tarefa.id) });
+  } = useSortable({ id: tarefa.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : "auto",
+    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      style={style}
-      className={`bg-white p-4 mb-3 rounded shadow cursor-grab hover:ring 
-        ${isDragging ? "scale-105 ring-2 ring-blue-300" : ""}
-      `}
-      onClick={() => onEdit(tarefa)}
-    >
-      <h3 className="font-semibold text-blue-700">{tarefa.title}</h3>
-      <p className="text-sm text-gray-700">{tarefa.desc}</p>
-
-      <div className="mt-2 text-xs text-gray-500">
-        {tarefa.responsible} • {tarefa.dueDate}
-      </div>
-
-      <div className="mt-3 flex justify-end">
-        <button
-          className="text-red-500 text-sm hover:underline"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(tarefa.id);
-          }}
-        >
-          Excluir
-        </button>
-      </div>
+    // O 'ref' e o 'style' ficam no container, mas os listeners vão para o TaskCard
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <TaskCard 
+        task={tarefa} 
+        onEdit={() => onEdit(tarefa)} 
+        onDelete={onDelete}
+        // Passamos apenas os 'listeners' para a alça de arrastar dentro do TaskCard
+        dragHandleListeners={listeners}
+      />
     </div>
   );
 }

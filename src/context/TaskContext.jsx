@@ -34,23 +34,14 @@ export function TaskProvider({ children }) {
   };
 
   const moveTask = (taskId, newStatus) => {
-    const taskIndex = tasks.findIndex((task) => task.id === taskId);
-
-    if (taskIndex === -1) {
-      console.error(`ERRO: Tarefa com ID ${taskId} não foi encontrada!`);
-      return;
-    }
-    
-    const newTasksArray = [...tasks];
-
-    const updatedTask = {
-      ...newTasksArray[taskIndex],
-      status: newStatus,
-    };
-
-    newTasksArray[taskIndex] = updatedTask;
-
-    setTasks(newTasksArray);
+    setTasks((currentTasks) => {
+      return currentTasks.map((task) => {
+        if (task.id === taskId) {
+          return { ...task, status: newStatus };
+        }
+        return task;
+      });
+    });
   };
 
   return (
@@ -58,7 +49,7 @@ export function TaskProvider({ children }) {
       value={{ tasks, addTask, updateTask, deleteTask, moveTask }}
     >
       {children}
-    </TaskContext.Provider> // <-- ERRO CORRIGIDO AQUI
+    </TaskContext.Provider>
   );
 }
 

@@ -44,24 +44,23 @@ export default function MainLayout() {
     setFilters((prev) => ({ ...prev, [type]: value }));
   };
 
-  // LÓGICA DE FILTRO CORRIGIDA
+  // Lógica de filtragem corrigida e simplificada
   const getFilteredTasks = () => {
-    // 1. Filtro base que se aplica a ambas as visualizações
-    let baseFilteredTasks = tasks
-      .filter((t) => t.projectId === selectedProjectId)
-      .filter((t) =>
-        t.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        (t.responsible && t.responsible.toLowerCase().includes(filters.search.toLowerCase()))
-      )
-      .filter((t) => !filters.priority || t.priority === t.priority);
+    // 1. Pega todas as tarefas do projeto selecionado
+    const tasksInProject = tasks.filter((t) => t.projectId === selectedProjectId);
 
-    // 2. Se a visualização for 'lista', aplica também o filtro de status
+    // 2. Aplica filtros de pesquisa e prioridade
+    const commonFiltered = tasksInProject.filter((t) =>
+        (t.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        (t.responsible && t.responsible.toLowerCase().includes(filters.search.toLowerCase()))) &&
+        (!filters.priority || t.priority === t.priority)
+    );
+
+    // 3. Se for 'lista', aplica também o filtro de status. Senão, retorna a lista filtrada comum.
     if (viewMode === "lista" && filters.status) {
-      return baseFilteredTasks.filter((t) => t.status === filters.status);
+      return commonFiltered.filter((t) => t.status === filters.status);
     }
-
-    // 3. Para a visualização 'kanban', retorna a lista sem o filtro de status
-    return baseFilteredTasks;
+    return commonFiltered;
   };
 
   const tasksToShow = getFilteredTasks();
@@ -79,6 +78,7 @@ export default function MainLayout() {
         <FilterBar onFilter={handleFilter} />
         <main className="p-6 overflow-auto bg-gray-50">
           {viewMode === "kanban" ? (
+            // O TaskBoard agora recebe a lista correta, sem o filtro de status
             <TaskBoard tasks={tasksToShow} onEdit={handleEditTask} />
           ) : (
             <TaskTable tasks={tasksToShow} onEdit={handleEditTask} />
