@@ -21,7 +21,7 @@ export function TaskProvider({ children }) {
     }
   }, [tasks]);
 
-    const addTask = (newTask) => {
+  const addTask = (newTask) => {
     setTasks((prev) => [...prev, { ...newTask, subtasks: [] }]);
   };
 
@@ -31,8 +31,12 @@ export function TaskProvider({ children }) {
     );
   };
 
+  const deleteTask = (id) => {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  };
+
   return (
-    <TaskContext.Provider value={{ tasks, setTasks, addTask, updateTask }}>
+    <TaskContext.Provider value={{ tasks, setTasks, addTask, updateTask, deleteTask }}>
       {children}
     </TaskContext.Provider>
   );

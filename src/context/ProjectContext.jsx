@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useTasks } from "./TaskContext";
-import { useSelectedProject } from "./SelectedProjectContext"; // 1. Importar
+import { useSelectedProject } from "./SelectedProjectContext";
 
 const ProjectContext = createContext();
 
 export function ProjectProvider({ children }) {
   const [projects, setProjects] = useState([]);
   const { setTasks } = useTasks();
-  // 2. Pegar o estado e a função do contexto de seleção
   const { selectedProjectId, setSelectedProjectId } = useSelectedProject();
 
   useEffect(() => {
@@ -34,13 +33,10 @@ export function ProjectProvider({ children }) {
     );
   };
 
-  // 3. FUNÇÃO DE EXCLUSÃO ATUALIZADA
   const deleteProject = (id) => {
-    // Limpa a seleção se o projeto excluído for o que estava selecionado
     if (id === selectedProjectId) {
       setSelectedProjectId(null);
     }
-    
     setTasks((prevTasks) => prevTasks.filter((task) => task.projectId !== id));
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };

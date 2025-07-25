@@ -1,3 +1,0 @@
-export const exportarDados = () => {
-  // ...código do exportarDados...
-};

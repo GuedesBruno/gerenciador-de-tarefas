@@ -1,3 +1,0 @@
-export default function LoadingSpinner() {
-  // ...código do LoadingSpinner...
-}

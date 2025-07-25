@@ -1,3 +1,5 @@
+import { PROJECT_STATUS } from '../constants';
+
 const PROJECTS_STORAGE_KEY = "projects";
 
 /**
@@ -24,4 +26,19 @@ export const saveProjects = (projects) => {
   } catch (error) {
     console.error("Falha ao salvar projetos no localStorage", error);
   }
+};
+
+/**
+ * Adiciona um novo projeto à lista.
+ * @param {Array} projects - A lista atual de projetos.
+ * @param {Object} newProjectData - Os dados do novo projeto.
+ * @returns {Array} A nova lista de projetos.
+ */
+export const addProject = (projects, newProjectData) => {
+  const novo = {
+    ...newProjectData,
+    id: Date.now(),
+    status: newProjectData.status || PROJECT_STATUS.ACTIVE,
+  };
+  return [...projects, novo];
 };
