@@ -4,9 +4,7 @@ import { useSelectedProject } from "../../context/SelectedProjectContext";
 import { TASK_STATUS } from "../../constants";
 
 export default function ModalTask({ isOpen, onClose, initialData = null }) {
-  if (!isOpen) return null;
-
-  // Hooks são chamados aqui, dentro do componente funcional
+  // 1. TODOS OS HOOKS SÃO CHAMADOS PRIMEIRO, NO TOPO DO COMPONENTE
   const { addTask, updateTask } = useTasks();
   const { selectedProjectId } = useSelectedProject();
   const isEditing = Boolean(initialData?.id);
@@ -23,10 +21,13 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
     } else {
       setForm({
         title: "", description: "", responsible: "", dueDate: "",
-        status: TASK_STATUS.TODO, subtasks: [],
+        status: TASK_STATUS.TODO, subtasks: [], priority: "",
       });
     }
   }, [initialData, isOpen]);
+
+  // 2. A CONDIÇÃO DE RETORNO VEM DEPOIS DOS HOOKS
+  if (!isOpen) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,7 +85,6 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
     onClose();
   };
 
-  // O JSX permanece o mesmo
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -107,6 +107,15 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Prazo</label>
             <input type="date" name="dueDate" value={form.dueDate || ""} onChange={handleChange} className="w-full border rounded px-3 py-2 text-sm" />
+          </div>
+           <div className="space-y-2">
+            <label className="text-sm text-gray-600">Prioridade</label>
+            <select name="priority" value={form.priority || ""} onChange={handleChange} className="w-full border rounded px-3 py-2 text-sm bg-white">
+              <option value="">Nenhuma</option>
+              <option value="Baixa">Baixa</option>
+              <option value="Média">Média</option>
+              <option value="Alta">Alta</option>
+            </select>
           </div>
         </div>
         <hr className="my-4" />

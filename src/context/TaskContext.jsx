@@ -1,28 +1,17 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import * as taskService from '../services/taskService';
 
 const TaskContext = createContext();
 
 export function TaskProvider({ children }) {
-  const [tasks, setTasks] = useState(() => {
-    try {
-      const savedTasks = localStorage.getItem("tasks");
-      return savedTasks ? JSON.parse(savedTasks) : [];
-    } catch (error) {
-      console.error("Falha ao carregar tarefas do localStorage", error);
-      return [];
-    }
-  });
+  const [tasks, setTasks] = useState(() => taskService.getTasks());
 
   useEffect(() => {
-    try {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    } catch (error) {
-      console.error("Falha ao salvar tarefas no localStorage", error);
-    }
+    taskService.saveTasks(tasks);
   }, [tasks]);
 
   const addTask = (newTask) => {
-    setTasks((prev) => [...prev, { ...newTask, subtasks: [] }]);
+    setTasks((prev) => [...prev, { ...newTask, subtasks: newTask.subtasks || [] }]);
   };
 
   const updateTask = (updatedTask) => {
@@ -35,6 +24,7 @@ export function TaskProvider({ children }) {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Exporta todas as funções, incluindo o 'setTasks' para o D&D
   return (
     <TaskContext.Provider value={{ tasks, setTasks, addTask, updateTask, deleteTask }}>
       {children}
