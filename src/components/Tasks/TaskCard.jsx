@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 // Função para calcular o progresso
 const ProgressBar = ({ subtasks = [] }) => {
   if (!subtasks || subtasks.length === 0) return null;
@@ -22,7 +24,7 @@ const ProgressBar = ({ subtasks = [] }) => {
   );
 };
 
-export default function TaskCard({ task, onDelete, onEdit, dragHandleListeners }) {
+export default memo(function TaskCard({ task, onDelete, onEdit, dragHandleListeners }) {
   const DragHandle = () => (
     <div {...dragHandleListeners} className="cursor-grab p-1 text-gray-400 hover:text-gray-600" title="Arrastar para mover">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M4 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm5-10a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm5-10a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm0 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" /></svg>
@@ -56,4 +58,4 @@ export default function TaskCard({ task, onDelete, onEdit, dragHandleListeners }
       <ProgressBar subtasks={task.subtasks} />
     </div>
   );
-}
+});

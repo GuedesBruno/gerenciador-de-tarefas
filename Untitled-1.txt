@@ -1,0 +1,2 @@
+// filepath: c:\DEV\gerenciador-de-tarefas\src\setupTests.js
+import '@testing-library/jest-dom';

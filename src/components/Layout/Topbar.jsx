@@ -1,3 +1,5 @@
+import { exportarDados } from '../../utils/backup';
+
 export default function Topbar({ projetoAtual, onAddTask, onToggleView, viewMode }) {
   // Define a cor do status com base no nome do status
   const getStatusColor = (status) => {
@@ -82,6 +84,13 @@ export default function Topbar({ projetoAtual, onAddTask, onToggleView, viewMode
                 Ver em Kanban
               </>
             )}
+          </button>
+
+          <button 
+            onClick={exportarDados}
+            className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            Exportar Dados
           </button>
         </div>
       </div>

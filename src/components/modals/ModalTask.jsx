@@ -4,24 +4,21 @@ import { useSelectedProject } from "../../context/SelectedProjectContext";
 import { TASK_STATUS } from "../../constants";
 
 export default function ModalTask({ isOpen, onClose, initialData = null }) {
-  console.log("ModalTask renderizado. isOpen:", isOpen);
-  
   if (!isOpen) return null;
 
+  // Hooks são chamados aqui, dentro do componente funcional
   const { addTask, updateTask } = useTasks();
   const { selectedProjectId } = useSelectedProject();
   const isEditing = Boolean(initialData?.id);
 
-  // Estado para o formulário principal da tarefa
   const [form, setForm] = useState({});
-  // Estado separado para a nova subtarefa
   const [newSubtask, setNewSubtask] = useState({ title: "", responsible: "" });
 
   useEffect(() => {
-    if (initialData && isOpen) {
+    if (initialData) {
       setForm({
         ...initialData,
-        subtasks: initialData.subtasks || [], // Garante que subtasks seja um array
+        subtasks: initialData.subtasks || [],
       });
     } else {
       setForm({
@@ -53,7 +50,7 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
       ...prev,
       subtasks: [...prev.subtasks, subtaskToAdd]
     }));
-    setNewSubtask({ title: "", responsible: "" }); // Limpa os campos
+    setNewSubtask({ title: "", responsible: "" });
   };
 
   const toggleSubtask = (subtaskId) => {
@@ -76,7 +73,7 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
     if (!selectedProjectId || !form.title.trim()) return;
 
     if (isEditing) {
-      updateTask(form); // O form já contém as subtarefas atualizadas
+      updateTask(form);
     } else {
       addTask({
         ...form,
@@ -87,15 +84,13 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
     onClose();
   };
 
+  // O JSX permanece o mesmo
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      {/* 1. AUMENTAR O TAMANHO DO CARD */}
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-semibold text-gray-800">
           {isEditing ? "Editar Tarefa" : "Nova Tarefa"}
         </h2>
-
-        {/* Formulário Principal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm text-gray-600">Título</label>
@@ -114,13 +109,9 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
             <input type="date" name="dueDate" value={form.dueDate || ""} onChange={handleChange} className="w-full border rounded px-3 py-2 text-sm" />
           </div>
         </div>
-
         <hr className="my-4" />
-
-        {/* 2. SEÇÃO DE SUBTAREFAS */}
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-gray-700">Subtarefas</h3>
-          {/* Lista de subtarefas existentes */}
           <div className="space-y-2">
             {form.subtasks?.map(subtask => (
               <div key={subtask.id} className="flex items-center gap-2 p-2 rounded bg-gray-50 hover:bg-gray-100">
@@ -131,14 +122,12 @@ export default function ModalTask({ isOpen, onClose, initialData = null }) {
               </div>
             ))}
           </div>
-          {/* Formulário para nova subtarefa */}
           <div className="flex items-center gap-2 pt-2">
             <input name="title" value={newSubtask.title} onChange={handleSubtaskChange} placeholder="Nova subtarefa..." className="flex-1 border rounded px-3 py-2 text-sm" />
             <input name="responsible" value={newSubtask.responsible} onChange={handleSubtaskChange} placeholder="Responsável (opcional)" className="border rounded px-3 py-2 text-sm" />
             <button onClick={handleAddSubtask} className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">Adicionar</button>
           </div>
         </div>
-
         <div className="flex justify-end gap-2 pt-4">
           <button onClick={onClose} className="px-4 py-2 text-sm bg-gray-200 rounded">Cancelar</button>
           <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">

@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { SortableTaskCard } from "./SortableTaskCard";
 
-export default function Column({ id, label, tasks, onEdit, deleteTask }) {
+export default memo(function Column({ id, label, tasks, onEdit, deleteTask }) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
@@ -31,4 +32,4 @@ export default function Column({ id, label, tasks, onEdit, deleteTask }) {
       </SortableContext>
     </div>
   );
-}
+});

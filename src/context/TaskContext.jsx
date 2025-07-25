@@ -1,31 +1,38 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
-export const TaskContext = createContext();
+const TaskContext = createContext();
 
 export function TaskProvider({ children }) {
-  const [tasks, setTasksState] = useState(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    return savedTasks ? JSON.parse(savedTasks) : [];
+  const [tasks, setTasks] = useState(() => {
+    try {
+      const savedTasks = localStorage.getItem("tasks");
+      return savedTasks ? JSON.parse(savedTasks) : [];
+    } catch (error) {
+      console.error("Falha ao carregar tarefas do localStorage", error);
+      return [];
+    }
   });
 
-  const setTasks = useCallback(
-    (tasksOrUpdater) => {
-      const newTasks =
-        typeof tasksOrUpdater === "function"
-          ? tasksOrUpdater(tasks)
-          : tasksOrUpdater;
+  useEffect(() => {
+    try {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    } catch (error) {
+      console.error("Falha ao salvar tarefas no localStorage", error);
+    }
+  }, [tasks]);
 
-      // Garante que todas as tarefas têm IDs únicos
-      const validTasks = newTasks.filter((task) => task.id);
+    const addTask = (newTask) => {
+    setTasks((prev) => [...prev, { ...newTask, subtasks: [] }]);
+  };
 
-      setTasksState(validTasks);
-      localStorage.setItem("tasks", JSON.stringify(validTasks));
-    },
-    [tasks]
-  );
+  const updateTask = (updatedTask) => {
+    setTasks((prev) =>
+      prev.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+    );
+  };
 
   return (
-    <TaskContext.Provider value={{ tasks, setTasks }}>
+    <TaskContext.Provider value={{ tasks, setTasks, addTask, updateTask }}>
       {children}
     </TaskContext.Provider>
   );
