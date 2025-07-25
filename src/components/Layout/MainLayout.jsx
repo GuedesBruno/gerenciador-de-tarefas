@@ -5,91 +5,111 @@ import FilterBar from "./FilterBar";
 import TaskBoard from "../Kanban/TaskBoard";
 import TaskTable from "../Tasks/TaskTable";
 import ModalTask from "../modals/ModalTask";
+import ModalProject from "../modals/ModalProject";
+import EmptyState from "../../components/ui/EmptyState";
 import { useTasks } from "../../context/TaskContext";
 import { useProjects } from "../../context/ProjectContext";
 import { useSelectedProject } from "../../context/SelectedProjectContext";
 
 export default function MainLayout() {
-  const { tasks } = useTasks();
+  const { tasks, deleteTask } = useTasks(); // Pegar deleteTask aqui
   const { projects } = useProjects();
   const { selectedProjectId } = useSelectedProject();
+  
   const [viewMode, setViewMode] = useState("kanban");
   const [filters, setFilters] = useState({ search: "", status: "", priority: "" });
-  const [showModal, setShowModal] = useState(false);
+  
+  const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
 
   const projetoAtual =
     projects.find((p) => p.id === selectedProjectId) ||
     { name: "Nenhum projeto selecionado", status: "" };
 
   const handleAddTask = () => {
+    console.log("Tentando adicionar tarefa...");
+    console.log("Projeto selecionado:", selectedProjectId);
+    
     if (!selectedProjectId) {
       alert("Por favor, selecione um projeto antes de adicionar uma tarefa.");
       return;
     }
+    
     setEditingTask(null);
-    setShowModal(true);
-  };
-
-  const handleToggleView = () => {
-    setViewMode(viewMode === "kanban" ? "lista" : "kanban");
+    setShowTaskModal(true);
+    console.log("Modal deveria estar visível agora:", showTaskModal);
   };
 
   const handleEditTask = (task) => {
     setEditingTask(task);
-    setShowModal(true);
+    setShowTaskModal(true);
+  };
+
+  const handleOpenNewProject = () => {
+    setEditingProject(null);
+    setShowProjectModal(true);
+  };
+
+  const handleEditProject = (project) => {
+    setEditingProject(project);
+    setShowProjectModal(true);
+  };
+  
+  const handleToggleView = () => {
+    setViewMode(viewMode === "kanban" ? "lista" : "kanban");
   };
 
   const handleFilter = (type, value) => {
     setFilters((prev) => ({ ...prev, [type]: value }));
   };
 
-  // Lógica de filtragem corrigida e simplificada
-  const getFilteredTasks = () => {
-    // 1. Pega todas as tarefas do projeto selecionado
-    const tasksInProject = tasks.filter((t) => t.projectId === selectedProjectId);
-
-    // 2. Aplica filtros de pesquisa e prioridade
-    const commonFiltered = tasksInProject.filter((t) =>
-        (t.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        (t.responsible && t.responsible.toLowerCase().includes(filters.search.toLowerCase()))) &&
-        (!filters.priority || t.priority === t.priority)
-    );
-
-    // 3. Se for 'lista', aplica também o filtro de status. Senão, retorna a lista filtrada comum.
-    if (viewMode === "lista" && filters.status) {
-      return commonFiltered.filter((t) => t.status === filters.status);
-    }
-    return commonFiltered;
-  };
-
-  const tasksToShow = getFilteredTasks();
+  const tasksToShow = tasks.filter((t) => t.projectId === selectedProjectId);
 
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar onOpenNew={handleOpenNewProject} onEditProject={handleEditProject} />
+      
       <div className="flex-1 flex flex-col">
-        <Topbar
-          projetoAtual={projetoAtual}
-          onAddTask={handleAddTask}
-          onToggleView={handleToggleView}
-          viewMode={viewMode}
-        />
-        <FilterBar onFilter={handleFilter} />
-        <main className="p-6 overflow-auto bg-gray-50">
-          {viewMode === "kanban" ? (
-            // O TaskBoard agora recebe a lista correta, sem o filtro de status
-            <TaskBoard tasks={tasksToShow} onEdit={handleEditTask} />
-          ) : (
-            <TaskTable tasks={tasksToShow} onEdit={handleEditTask} />
-          )}
-        </main>
+        {!selectedProjectId ? (
+          <EmptyState onCreateProject={handleOpenNewProject} />
+        ) : (
+          <>
+            <Topbar
+              projetoAtual={projetoAtual}
+              onAddTask={handleAddTask}
+              onToggleView={handleToggleView}
+              viewMode={viewMode}
+            />
+            <FilterBar onFilter={handleFilter} />
+            <main className="p-6 overflow-auto bg-gray-50">
+              {viewMode === "kanban" ? (
+                // Passando a função 'deleteTask' para o TaskBoard
+                <TaskBoard tasks={tasksToShow} onEdit={handleEditTask} onDelete={deleteTask} />
+              ) : (
+                <TaskTable tasks={tasksToShow} onEdit={handleEditTask} />
+              )}
+            </main>
+          </>
+        )}
       </div>
-      {showModal && (
+
+      {showTaskModal && (
         <ModalTask
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
+          isOpen={showTaskModal}
+          onClose={() => {
+            console.log("Fechando modal");
+            setShowTaskModal(false);
+          }}
           initialData={editingTask}
+        />
+      )}
+      {showProjectModal && (
+        <ModalProject
+          isOpen={showProjectModal}
+          onClose={() => setShowProjectModal(false)}
+          initialData={editingProject}
         />
       )}
     </div>

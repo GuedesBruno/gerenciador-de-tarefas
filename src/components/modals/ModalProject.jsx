@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
 import { useProjects } from "../../context/ProjectContext";
+import { PROJECT_STATUS } from "../../constants";
 
 export default function ModalProject({ isOpen, onClose, initialData }) {
   const { addProject, updateProject } = useProjects();
   const isEditing = Boolean(initialData?.id);
 
-  const [form, setForm] = useState({ name: "", status: "ativo" });
+  const [form, setForm] = useState({ name: "", status: PROJECT_STATUS.ACTIVE });
 
   useEffect(() => {
     if (initialData && isOpen) {
       setForm({
         name: initialData.name || "",
-        status: initialData.status || "ativo",
+        status: initialData.status || PROJECT_STATUS.ACTIVE,
       });
     } else {
-      setForm({ name: "", status: "ativo" });
+      setForm({ name: "", status: PROJECT_STATUS.ACTIVE });
     }
   }, [initialData, isOpen]);
 
@@ -61,9 +62,9 @@ export default function ModalProject({ isOpen, onClose, initialData }) {
             onChange={handleChange}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="ativo">Ativo</option>
-            <option value="pausado">Pausado</option>
-            <option value="arquivado">Arquivado</option>
+            <option value={PROJECT_STATUS.ACTIVE}>Ativo</option>
+            <option value={PROJECT_STATUS.PAUSED}>Pausado</option>
+            <option value={PROJECT_STATUS.ARCHIVED}>Arquivado</option>
           </select>
         </div>
 

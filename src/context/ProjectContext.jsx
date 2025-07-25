@@ -1,22 +1,24 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useTasks } from "./TaskContext";
+import { useSelectedProject } from "./SelectedProjectContext"; // 1. Importar
 
 const ProjectContext = createContext();
 
 export function ProjectProvider({ children }) {
   const [projects, setProjects] = useState([]);
+  const { setTasks } = useTasks();
+  // 2. Pegar o estado e a função do contexto de seleção
+  const { selectedProjectId, setSelectedProjectId } = useSelectedProject();
 
-  // 🔄 Carregar do localStorage ao iniciar
   useEffect(() => {
     const saved = localStorage.getItem("projects");
     if (saved) setProjects(JSON.parse(saved));
   }, []);
 
-  // 💾 Salvar no localStorage sempre que mudar
   useEffect(() => {
     localStorage.setItem("projects", JSON.stringify(projects));
   }, [projects]);
 
-  // ➕ Criar novo projeto
   const addProject = (project) => {
     const novo = {
       ...project,
@@ -26,19 +28,23 @@ export function ProjectProvider({ children }) {
     setProjects((prev) => [...prev, novo]);
   };
 
-  // ✏️ Atualizar projeto existente
   const updateProject = (updated) => {
     setProjects((prev) =>
       prev.map((p) => (p.id === updated.id ? updated : p))
     );
   };
 
-  // 🗑️ Excluir projeto
+  // 3. FUNÇÃO DE EXCLUSÃO ATUALIZADA
   const deleteProject = (id) => {
+    // Limpa a seleção se o projeto excluído for o que estava selecionado
+    if (id === selectedProjectId) {
+      setSelectedProjectId(null);
+    }
+    
+    setTasks((prevTasks) => prevTasks.filter((task) => task.projectId !== id));
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
-  // 📦 Arquivar projeto
   const archiveProject = (id) => {
     setProjects((prev) =>
       prev.map((p) =>
@@ -47,7 +53,6 @@ export function ProjectProvider({ children }) {
     );
   };
 
-  // 🔀 Reordenar lista de projetos
   const reorderProjects = (newOrder) => {
     setProjects(newOrder);
   };

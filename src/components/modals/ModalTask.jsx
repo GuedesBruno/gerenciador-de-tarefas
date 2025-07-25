@@ -1,36 +1,32 @@
 import { useState, useEffect } from "react";
 import { useTasks } from "../../context/TaskContext";
 import { useSelectedProject } from "../../context/SelectedProjectContext";
+import { TASK_STATUS } from "../../constants";
 
-export default function ModalTask({ isOpen, onClose, initialData }) {
+export default function ModalTask({ isOpen, onClose, initialData = null }) {
+  console.log("ModalTask renderizado. isOpen:", isOpen);
+  
+  if (!isOpen) return null;
+
   const { addTask, updateTask } = useTasks();
   const { selectedProjectId } = useSelectedProject();
   const isEditing = Boolean(initialData?.id);
 
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    responsible: "",
-    dueDate: "",
-    status: "todo",
-  });
+  // Estado para o formulário principal da tarefa
+  const [form, setForm] = useState({});
+  // Estado separado para a nova subtarefa
+  const [newSubtask, setNewSubtask] = useState({ title: "", responsible: "" });
 
   useEffect(() => {
     if (initialData && isOpen) {
       setForm({
-        title: initialData.title || "",
-        description: initialData.description || "",
-        responsible: initialData.responsible || "",
-        dueDate: initialData.dueDate || "",
-        status: initialData.status || "todo",
+        ...initialData,
+        subtasks: initialData.subtasks || [], // Garante que subtasks seja um array
       });
     } else {
       setForm({
-        title: "",
-        description: "",
-        responsible: "",
-        dueDate: "",
-        status: "todo",
+        title: "", description: "", responsible: "", dueDate: "",
+        status: TASK_STATUS.TODO, subtasks: [],
       });
     }
   }, [initialData, isOpen]);
@@ -39,90 +35,114 @@ export default function ModalTask({ isOpen, onClose, initialData }) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+  
+  const handleSubtaskChange = (e) => {
+    const { name, value } = e.target;
+    setNewSubtask(prev => ({ ...prev, [name]: value }));
+  };
 
-   const handleSave = () => {
+  const handleAddSubtask = () => {
+    if (!newSubtask.title.trim()) return;
+    const subtaskToAdd = {
+      id: Date.now(),
+      title: newSubtask.title,
+      responsible: newSubtask.responsible,
+      isCompleted: false,
+    };
+    setForm(prev => ({
+      ...prev,
+      subtasks: [...prev.subtasks, subtaskToAdd]
+    }));
+    setNewSubtask({ title: "", responsible: "" }); // Limpa os campos
+  };
+
+  const toggleSubtask = (subtaskId) => {
+    setForm(prev => ({
+      ...prev,
+      subtasks: prev.subtasks.map(st => 
+        st.id === subtaskId ? { ...st, isCompleted: !st.isCompleted } : st
+      )
+    }));
+  };
+
+  const deleteSubtask = (subtaskId) => {
+     setForm(prev => ({
+      ...prev,
+      subtasks: prev.subtasks.filter(st => st.id !== subtaskId)
+    }));
+  }
+
+  const handleSave = () => {
     if (!selectedProjectId || !form.title.trim()) return;
 
     if (isEditing) {
-      // Se estiver editando, apenas passa os dados atualizados do formulário.
-      updateTask({ ...initialData, ...form });
+      updateTask(form); // O form já contém as subtarefas atualizadas
     } else {
-      // Se estiver criando, monta o objeto completo da nova tarefa aqui.
-      const newTask = {
-        ...form, // Dados do formulário (título, descrição, etc.)
-        id: Date.now(), // Gera um novo ID
-        status: 'todo', // Define o status inicial explicitamente
-        projectId: selectedProjectId, // Associa ao projeto selecionado
-      };
-      addTask(newTask);
+      addTask({
+        ...form,
+        id: Date.now(),
+        projectId: selectedProjectId,
+      });
     }
-
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-md w-[400px] p-6 space-y-4">
-        <h2 className="text-base font-semibold text-gray-800">
-          {isEditing ? "Editar tarefa" : "Nova tarefa"}
+      {/* 1. AUMENTAR O TAMANHO DO CARD */}
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-semibold text-gray-800">
+          {isEditing ? "Editar Tarefa" : "Nova Tarefa"}
         </h2>
 
-        <div className="space-y-2">
-          <label className="text-sm text-gray-600">Título</label>
-          <input
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            placeholder="Digite o título"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-          />
+        {/* Formulário Principal */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600">Título</label>
+            <input name="title" value={form.title || ""} onChange={handleChange} className="w-full border rounded px-3 py-2 text-sm" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600">Responsável</label>
+            <input name="responsible" value={form.responsible || ""} onChange={handleChange} className="w-full border rounded px-3 py-2 text-sm" />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm text-gray-600">Descrição</label>
+            <textarea name="description" value={form.description || ""} onChange={handleChange} rows={3} className="w-full border rounded px-3 py-2 text-sm" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600">Prazo</label>
+            <input type="date" name="dueDate" value={form.dueDate || ""} onChange={handleChange} className="w-full border rounded px-3 py-2 text-sm" />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm text-gray-600">Descrição</label>
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            placeholder="Descrição da tarefa"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none"
-            rows={3}
-          />
-        </div>
+        <hr className="my-4" />
 
-        <div className="space-y-2">
-          <label className="text-sm text-gray-600">Responsável</label>
-          <input
-            name="responsible"
-            value={form.responsible}
-            onChange={handleChange}
-            placeholder="Nome ou e-mail"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm text-gray-600">Prazo</label>
-          <input
-            type="date"
-            name="dueDate"
-            value={form.dueDate}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-          />
+        {/* 2. SEÇÃO DE SUBTAREFAS */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-gray-700">Subtarefas</h3>
+          {/* Lista de subtarefas existentes */}
+          <div className="space-y-2">
+            {form.subtasks?.map(subtask => (
+              <div key={subtask.id} className="flex items-center gap-2 p-2 rounded bg-gray-50 hover:bg-gray-100">
+                <input type="checkbox" checked={subtask.isCompleted} onChange={() => toggleSubtask(subtask.id)} />
+                <span className={`flex-1 text-sm ${subtask.isCompleted ? 'line-through text-gray-400' : ''}`}>{subtask.title}</span>
+                <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">{subtask.responsible || 'Ninguém'}</span>
+                <button onClick={() => deleteSubtask(subtask.id)} className="text-red-500 text-xs hover:underline">Excluir</button>
+              </div>
+            ))}
+          </div>
+          {/* Formulário para nova subtarefa */}
+          <div className="flex items-center gap-2 pt-2">
+            <input name="title" value={newSubtask.title} onChange={handleSubtaskChange} placeholder="Nova subtarefa..." className="flex-1 border rounded px-3 py-2 text-sm" />
+            <input name="responsible" value={newSubtask.responsible} onChange={handleSubtaskChange} placeholder="Responsável (opcional)" className="border rounded px-3 py-2 text-sm" />
+            <button onClick={handleAddSubtask} className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600">Adicionar</button>
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <button onClick={onClose} className="px-4 py-2 text-sm bg-gray-200 rounded">
-            Cancelar
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            {isEditing ? "Salvar" : "Criar"}
+          <button onClick={onClose} className="px-4 py-2 text-sm bg-gray-200 rounded">Cancelar</button>
+          <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+            {isEditing ? "Salvar Alterações" : "Criar Tarefa"}
           </button>
         </div>
       </div>
